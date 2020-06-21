@@ -7,8 +7,8 @@ const AccountWasOpenedMessageType = "AccountWasOpened"
 
 type OpenAccount struct {
 	cqrses.MessageDescriber
-	accountID   string
-	name        string
+	accountID string
+	name      string
 }
 
 func (c *OpenAccount) AccountID() string {
@@ -21,8 +21,8 @@ func (c *OpenAccount) Name() string {
 
 type AccountWasOpened struct {
 	cqrses.MessageDescriber
-	accountID   string
-	name string
+	accountID string
+	name      string
 }
 
 func (e AccountWasOpened) AccountID() string {

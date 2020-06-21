@@ -11,5 +11,5 @@ func NewService(eventStore cqrses.StoresEvents) Banking {
 }
 
 func (b *Banking) HandleCommand(c cqrses.MessageDescriber) {
-
+	// todo
 }

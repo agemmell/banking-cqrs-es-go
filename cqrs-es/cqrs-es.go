@@ -2,17 +2,23 @@ package cqrs_es
 
 import uuid "github.com/nu7hatch/gouuid"
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate . MessageDescriber
 type MessageDescriber interface {
 	MessageID() string
 	MessageType() string
 }
 
+//counterfeiter:generate . CommandHandler
 type CommandHandler interface {
 	HandleCommand() error
 }
 
+//counterfeiter:generate . CQRSES
 type CQRSES interface {
-	CreateMessageIDUUIDv4() (string, error)
+	CreateUUID() (*uuid.UUID, error)
+	CreateUUIDString() (string, error)
 	CreateMessageOfType(messageType string) (MessageDescriber, error)
 }
 
@@ -31,8 +37,17 @@ func (m *Message) MessageType() string {
 	return m.messageType
 }
 
-func (s *CQRSESService) CreateMessageIDUUIDv4() (string, error) {
+func (s *CQRSESService) CreateUUID() (*uuid.UUID, error) {
 	uuid4, err := uuid.NewV4()
+	if err != nil {
+		return nil, err
+	}
+
+	return uuid4, nil
+}
+
+func (s *CQRSESService) CreateUUIDString() (string, error) {
+	uuid4, err := s.CreateUUID()
 	if err != nil {
 		return "", err
 	}
@@ -41,7 +56,7 @@ func (s *CQRSESService) CreateMessageIDUUIDv4() (string, error) {
 }
 
 func (s *CQRSESService) CreateMessageOfType(messageType string) (MessageDescriber, error) {
-	messageID, err := s.CreateMessageIDUUIDv4()
+	messageID, err := s.CreateUUIDString()
 	if err != nil {
 		return nil, err
 	}

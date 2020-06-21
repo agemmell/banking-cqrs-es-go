@@ -5,42 +5,21 @@ import (
 
 	uuid "github.com/nu7hatch/gouuid"
 
-	cqrses "github.com/agemmell/banking-cqrs-es-go/cqrs-es"
+	cqrsesfakes "github.com/agemmell/banking-cqrs-es-go/cqrs-es/cqrs-esfakes"
 )
 
-type FakeCQRSESService struct {
-	fakeUUID string
-}
-
-type FakeMessage struct {
-	messageID string
-	messageType string
-}
-
-func (s *FakeCQRSESService) CreateMessageIDUUIDv4() (string, error) {
-	return s.fakeUUID, nil
-}
-
-func (s *FakeCQRSESService) CreateMessageOfType(messageType string) (cqrses.MessageDescriber, error) {
-	return &FakeMessage{
-		s.fakeUUID,
-		messageType,
-	}, nil
-}
-
-func (m *FakeMessage) MessageID() string {
-	return m.messageID
-}
-
-func (m *FakeMessage) MessageType() string {
-	return m.messageType
-}
-
 func Test_CreateOpenAccount(t *testing.T) {
+	t.Parallel()
 
 	// Given
-	fakeCQRSESService := FakeCQRSESService{}
-	fakeCQRSESService.fakeUUID = "fake-uuid-string"
+	fakeCQRSESService := cqrsesfakes.FakeCQRSES{}
+
+	fakeUUID := "fake-uuid-string"
+	fakeMessage := cqrsesfakes.FakeMessageDescriber{}
+	fakeMessage.MessageIDReturns(fakeUUID)
+	fakeMessage.MessageTypeReturns(OpenAccountMessageType)
+	fakeCQRSESService.CreateMessageOfTypeReturns(&fakeMessage, nil)
+
 	accountService := AccountService{&fakeCQRSESService}
 	accountID := "test-account-id-string"
 	name := "Alex Gemmell"
@@ -58,8 +37,8 @@ func Test_CreateOpenAccount(t *testing.T) {
 	if got.AccountID() != accountID {
 		t.Errorf("Got %v, want %v", got.accountID, accountID)
 	}
-	if got.MessageID() != fakeCQRSESService.fakeUUID {
-		t.Errorf("Got %v, want %v", got.MessageID(), fakeCQRSESService.fakeUUID)
+	if got.MessageID() != fakeUUID {
+		t.Errorf("Got %v, want %v", got.MessageID(), fakeUUID)
 	}
 	if got.MessageType() != OpenAccountMessageType {
 		t.Errorf("Got %v, want %v", got.MessageType(), OpenAccountMessageType)
@@ -67,9 +46,17 @@ func Test_CreateOpenAccount(t *testing.T) {
 }
 
 func Test_CreateOpenAccountWithUUID(t *testing.T) {
+	t.Parallel()
 
 	// Given
-	fakeCQRSESService := FakeCQRSESService{}
+	fakeCQRSESService := cqrsesfakes.FakeCQRSES{}
+
+	fakeUUID := "fake-uuid-string"
+	fakeMessage := cqrsesfakes.FakeMessageDescriber{}
+	fakeMessage.MessageIDReturns(fakeUUID)
+	fakeMessage.MessageTypeReturns(OpenAccountMessageType)
+	fakeCQRSESService.CreateMessageOfTypeReturns(&fakeMessage, nil)
+
 	accountService := AccountService{&fakeCQRSESService}
 	accountID, _ := uuid.NewV4()
 	name := "Alex Gemmell"
@@ -87,8 +74,8 @@ func Test_CreateOpenAccountWithUUID(t *testing.T) {
 	if got.AccountID() != accountID.String() {
 		t.Errorf("Got %v, want %v", got.accountID, accountID.String())
 	}
-	if got.MessageID() != fakeCQRSESService.fakeUUID {
-		t.Errorf("Got %v, want %v", got.MessageID(), fakeCQRSESService.fakeUUID)
+	if got.MessageID() != fakeUUID {
+		t.Errorf("Got %v, want %v", got.MessageID(), fakeUUID)
 	}
 	if got.MessageType() != OpenAccountMessageType {
 		t.Errorf("Got %v, want %v", got.MessageType(), OpenAccountMessageType)
@@ -96,8 +83,17 @@ func Test_CreateOpenAccountWithUUID(t *testing.T) {
 }
 
 func Test_CreateAccountWasOpened(t *testing.T) {
+	t.Parallel()
+
 	// Given
-	fakeCQRSESService := FakeCQRSESService{}
+	fakeCQRSESService := cqrsesfakes.FakeCQRSES{}
+
+	fakeUUID := "fake-uuid-string"
+	fakeMessage := cqrsesfakes.FakeMessageDescriber{}
+	fakeMessage.MessageIDReturns(fakeUUID)
+	fakeMessage.MessageTypeReturns(AccountWasOpenedMessageType)
+	fakeCQRSESService.CreateMessageOfTypeReturns(&fakeMessage, nil)
+
 	accountService := AccountService{&fakeCQRSESService}
 	accountID := "test-account-id-string"
 	name := "Alex Gemmell"
@@ -115,8 +111,8 @@ func Test_CreateAccountWasOpened(t *testing.T) {
 	if got.AccountID() != accountID {
 		t.Errorf("Got %v, want %v", got.accountID, accountID)
 	}
-	if got.MessageID() != fakeCQRSESService.fakeUUID {
-		t.Errorf("Got %v, want %v", got.MessageID(), fakeCQRSESService.fakeUUID)
+	if got.MessageID() != fakeUUID {
+		t.Errorf("Got %v, want %v", got.MessageID(), fakeUUID)
 	}
 	if got.MessageType() != AccountWasOpenedMessageType {
 		t.Errorf("Got %v, want %v", got.MessageType(), AccountWasOpenedMessageType)

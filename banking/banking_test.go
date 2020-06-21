@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	cqrses "github.com/agemmell/banking-cqrs-es-go/cqrs-es"
+	cqrsesfakes "github.com/agemmell/banking-cqrs-es-go/cqrs-es/cqrs-esfakes"
 )
 
 func Test_NewServiceNoEvents(t *testing.T) {
@@ -19,16 +20,24 @@ func Test_NewServiceNoEvents(t *testing.T) {
 func Test_NewServiceWithEvents(t *testing.T) {
 	t.Parallel()
 
+	fakeMessage1 := cqrsesfakes.FakeMessageDescriber{}
+	fakeMessage1.MessageIDReturns("1234ABCD")
+	fakeMessage1.MessageTypeReturns("FakeTypeOne")
 	event1 := AccountWasOpened{
-		&FakeMessage{"1234ABCD", "FakeTypeOne"},
+		&fakeMessage1,
 		"5678EFGH",
 		"Alex Gemmell",
 	}
+
+	fakeMessage2 := cqrsesfakes.FakeMessageDescriber{}
+	fakeMessage2.MessageIDReturns("9012IJKL")
+	fakeMessage2.MessageTypeReturns("FakeTypeTwo")
 	event2 := AccountWasOpened{
-		&FakeMessage{"9012IJKL", "FakeTypeTwo"},
+		&fakeMessage2,
 		"3456MNOP",
 		"Andrew Garfield",
 	}
+
 	eventStore := cqrses.NewEventStore(event1, event2)
 	got := NewService(eventStore)
 	allEvents := got.eventStore.GetAllEvents()
@@ -44,5 +53,7 @@ func Test_NewServiceWithEvents(t *testing.T) {
 }
 
 func TestService_HandleCommand(t *testing.T) {
+	t.Parallel()
 
+	// todo
 }
