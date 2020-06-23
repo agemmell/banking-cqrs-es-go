@@ -3,6 +3,8 @@ package banking
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	cqrses "github.com/agemmell/banking-cqrs-es-go/cqrs-es"
 	cqrsesfakes "github.com/agemmell/banking-cqrs-es-go/cqrs-es/cqrs-esfakes"
 )
@@ -12,9 +14,7 @@ func Test_NewServiceNoEvents(t *testing.T) {
 
 	eventStore := cqrses.NewEventStore()
 	got := NewService(eventStore)
-	if len(got.eventStore.GetAllEvents()) != 0 {
-		t.Errorf("got %v, want %v", got.eventStore, eventStore)
-	}
+	assert.Len(t, got.eventStore.GetAllEvents(), 0)
 }
 
 func Test_NewServiceWithEvents(t *testing.T) {
@@ -41,15 +41,9 @@ func Test_NewServiceWithEvents(t *testing.T) {
 	eventStore := cqrses.NewEventStore(event1, event2)
 	got := NewService(eventStore)
 	allEvents := got.eventStore.GetAllEvents()
-	if len(allEvents) != 2 {
-		t.Errorf("got %v, want %v", got.eventStore, eventStore)
-	}
-	if allEvents[0].MessageID() != event1.MessageID() {
-		t.Errorf("got %v, want %v", allEvents[0].MessageID(), event1.MessageID())
-	}
-	if allEvents[1].MessageType() != event2.MessageType() {
-		t.Errorf("got %v, want %v", allEvents[1].MessageType(), event1.MessageType())
-	}
+	assert.Len(t, allEvents, 2)
+	assert.Equal(t, allEvents[0].MessageID(), event1.MessageID())
+	assert.Equal(t, allEvents[1].MessageID(), event2.MessageID())
 }
 
 func TestService_HandleCommand(t *testing.T) {

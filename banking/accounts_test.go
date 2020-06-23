@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	uuid "github.com/nu7hatch/gouuid"
+	"github.com/stretchr/testify/assert"
 
 	cqrsesfakes "github.com/agemmell/banking-cqrs-es-go/cqrs-es/cqrs-esfakes"
 )
@@ -26,23 +27,13 @@ func Test_CreateOpenAccount(t *testing.T) {
 
 	// When
 	got, err := accountService.CreateOpenAccount(accountID, name)
-	if err != nil {
-		t.Errorf("Error %v", err)
-	}
+	assert.Nil(t, err)
 
 	// Then
-	if got.Name() != name {
-		t.Errorf("Got %v, want %v", got.name, name)
-	}
-	if got.AccountID() != accountID {
-		t.Errorf("Got %v, want %v", got.accountID, accountID)
-	}
-	if got.MessageID() != fakeUUID {
-		t.Errorf("Got %v, want %v", got.MessageID(), fakeUUID)
-	}
-	if got.MessageType() != OpenAccountMessageType {
-		t.Errorf("Got %v, want %v", got.MessageType(), OpenAccountMessageType)
-	}
+	assert.Equal(t, name, got.Name())
+	assert.Equal(t, accountID, got.AccountID())
+	assert.Equal(t, fakeUUID, got.MessageID())
+	assert.Equal(t, OpenAccountMessageType, got.MessageType())
 }
 
 func Test_CreateOpenAccountWithUUID(t *testing.T) {
@@ -63,23 +54,13 @@ func Test_CreateOpenAccountWithUUID(t *testing.T) {
 
 	// When
 	got, err := accountService.CreateOpenAccountWithUUID(accountID, name)
-	if err != nil {
-		t.Errorf("Error %v", err)
-	}
+	assert.Nil(t, err)
 
 	// Then
-	if got.Name() != name {
-		t.Errorf("Got %v, want %v", got.name, name)
-	}
-	if got.AccountID() != accountID.String() {
-		t.Errorf("Got %v, want %v", got.accountID, accountID.String())
-	}
-	if got.MessageID() != fakeUUID {
-		t.Errorf("Got %v, want %v", got.MessageID(), fakeUUID)
-	}
-	if got.MessageType() != OpenAccountMessageType {
-		t.Errorf("Got %v, want %v", got.MessageType(), OpenAccountMessageType)
-	}
+	assert.Equal(t, name, got.Name())
+	assert.Equal(t, accountID.String(), got.AccountID())
+	assert.Equal(t, fakeUUID, got.MessageID())
+	assert.Equal(t, OpenAccountMessageType, got.MessageType())
 }
 
 func Test_CreateAccountWasOpened(t *testing.T) {
@@ -100,21 +81,11 @@ func Test_CreateAccountWasOpened(t *testing.T) {
 
 	// When
 	got, err := accountService.CreateAccountWasOpened(accountID, name)
-	if err != nil {
-		t.Errorf("Error %v", err)
-	}
+	assert.Nil(t, err)
 
 	// Then
-	if got.Name() != name {
-		t.Errorf("Got %v, want %v", got.name, name)
-	}
-	if got.AccountID() != accountID {
-		t.Errorf("Got %v, want %v", got.accountID, accountID)
-	}
-	if got.MessageID() != fakeUUID {
-		t.Errorf("Got %v, want %v", got.MessageID(), fakeUUID)
-	}
-	if got.MessageType() != AccountWasOpenedMessageType {
-		t.Errorf("Got %v, want %v", got.MessageType(), AccountWasOpenedMessageType)
-	}
+	assert.Equal(t, name, got.Name())
+	assert.Equal(t, accountID, got.AccountID())
+	assert.Equal(t, fakeUUID, got.MessageID())
+	assert.Equal(t, AccountWasOpenedMessageType, got.MessageType())
 }

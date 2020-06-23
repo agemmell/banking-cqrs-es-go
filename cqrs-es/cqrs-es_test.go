@@ -2,42 +2,19 @@ package cqrs_es
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_CQRSESService_CreateMessageOfType(t *testing.T) {
 	t.Parallel()
 
-	type args struct {
-		messageType string
-	}
-
 	testMessageType := "TestMessageType"
 
-	tests := []struct {
-		name    string
-		args    args
-		want    MessageDescriber
-		wantErr bool
-	}{
-		{
-			"happy path",
-			args{
-				testMessageType,
-			},
-			&Message{"test-uuid", testMessageType},
-			false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &CQRSESService{}
-			got, _ := s.CreateMessageOfType(tt.args.messageType)
-			if got.MessageType() != tt.want.MessageType() {
-				t.Errorf("MessageType() got = %v, want %v", got.MessageType(), tt.want.MessageType())
-			}
-		})
-	}
+	s := &CQRSESService{}
+	got, err := s.CreateMessageOfType(testMessageType)
+	assert.Nil(t, err)
+	assert.Equal(t, testMessageType, got.MessageType())
 }
 
 func Test_CQRSESService_CreateUUID(t *testing.T) {
@@ -45,13 +22,8 @@ func Test_CQRSESService_CreateUUID(t *testing.T) {
 
 	CQRSESService := CQRSESService{}
 	got, err := CQRSESService.CreateUUID()
-	if err != nil {
-		t.Errorf("CreateUUID() error = %v", err)
-	}
-
-	if len(got) < 1 {
-		t.Errorf("CreateUUID() returned empty string: %v", got)
-	}
+	assert.Nil(t, err)
+	assert.Regexp(t, `(?i)^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[0-9A-F]{4}-[0-9A-F]{12}$`, got.String())
 }
 
 func Test_CQRSESService_CreateUUIDString(t *testing.T) {
@@ -59,13 +31,8 @@ func Test_CQRSESService_CreateUUIDString(t *testing.T) {
 
 	CQRSESService := CQRSESService{}
 	got, err := CQRSESService.CreateUUIDString()
-	if err != nil {
-		t.Errorf("CreateUUIDString() error = %v", err)
-	}
-
-	if len(got) < 1 {
-		t.Errorf("CreateUUIDString() returned empty string: %v", got)
-	}
+	assert.Nil(t, err)
+	assert.True(t, len(got) > 0)
 }
 
 func Test_Message_MessageID(t *testing.T) {
@@ -73,9 +40,7 @@ func Test_Message_MessageID(t *testing.T) {
 
 	testMessage := Message{"test-id", "test-type"}
 	got := testMessage.MessageID()
-	if got != "test-id" {
-		t.Errorf("MessageID() got %v, want %v", got, "test-id")
-	}
+	assert.Equal(t, "test-id", got)
 }
 
 func Test_Message_MessageType(t *testing.T) {
@@ -83,7 +48,5 @@ func Test_Message_MessageType(t *testing.T) {
 
 	testMessage := Message{"test-id", "test-type"}
 	got := testMessage.MessageType()
-	if got != "test-type" {
-		t.Errorf("MessageType() got %v, want %v", got, "test-type")
-	}
+	assert.Equal(t, "test-type", got)
 }
