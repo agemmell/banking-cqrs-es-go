@@ -7,13 +7,26 @@ import (
 )
 
 type Banking struct {
+	accountService AccountService
 	eventStore     seacrest.StoresEvents
 }
 
-func NewService(eventStore cqrses.StoresEvents) Banking {
-	return Banking{eventStore}
+func NewService(eventStore seacrest.StoresEvents) Banking {
+	return Banking{NewAccountService(), eventStore}
 }
 
-func (b *Banking) HandleCommand(c cqrses.MessageDescriber) {
-	// todo
+func (b *Banking) HandleCommand(command seacrest.MessageDescriber) error {
+	switch command.MessageType() {
+	case OpenAccountMessageType:
+		openAccount, ok := command.(OpenAccount)
+		if ok != true {
+			return errors.New("command has wrong message type")
+		}
+
+		err := b.accountService.OpenAccount(&openAccount)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
