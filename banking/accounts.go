@@ -52,24 +52,25 @@ func (account *Account) Version() int {
 }
 
 func (account *Account) ApplyEvent(event seacrest.MessageDescriber) error {
-	switch event.MessageType() {
-	case AccountWasOpenedMessageType:
-		accountWasOpened, ok := event.(AccountWasOpened)
-		if ok != true {
-			return errors.New("event has wrong message type")
-		}
-		account.accountID = accountWasOpened.AccountID()
-		account.name = accountWasOpened.Name()
-		account.aggregateID = accountWasOpened.AccountID()
+	switch eventType := event.(type) {
+	case *AccountWasOpened:
+		account.accountID = eventType.AccountID()
+		account.name = eventType.Name()
+		account.aggregateID = eventType.AccountID()
+		account.version++
+	default:
+		return errors.New(fmt.Sprintf("unknown event type %v", eventType))
 	}
-
-	account.version++
-	account.events = append(account.events, event)
 	return nil
 }
 
 func (account *Account) GetEvents() []seacrest.MessageDescriber {
 	return account.events
+}
+
+
+func (account *Account) RecordEvent(event seacrest.MessageDescriber) {
+	account.events = append(account.events, event)
 }
 
 func (as *AccountService) CreateOpenAccount(accountID string, name string) (*OpenAccount, error) {
@@ -105,17 +106,19 @@ func (as *AccountService) CreateOpenAccountWithUUID(accountID *uuid.UUID, name s
 	return openAccount, nil
 }
 
-func (as *AccountService) OpenAccount(command *OpenAccount) error {
+func (as *AccountService) OpenAccount(command *OpenAccount) (*Account, error) {
 	// No Account invariants to protect at this stage because Account doesn't exist yet
-	accountWasOpened, err := as.CreateAccountWasOpened(command.accountID, command.Name())
+	account := NewAccount()
+	accountWasOpened, err := as.CreateAccountWasOpened(command.AccountID(), command.Name())
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	account := NewAccount()
+	account.RecordEvent(accountWasOpened)
+
 	err = account.ApplyEvent(accountWasOpened)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return account, nil
 }

@@ -16,17 +16,17 @@ func NewService(eventStore seacrest.StoresEvents) Banking {
 }
 
 func (b *Banking) HandleCommand(command seacrest.MessageDescriber) error {
-	switch command.MessageType() {
-	case OpenAccountMessageType:
-		openAccount, ok := command.(OpenAccount)
-		if ok != true {
-			return errors.New("command has wrong message type")
-		}
-
-		err := b.accountService.OpenAccount(&openAccount)
+	switch commandType := command.(type) {
+	case *OpenAccount:
+		account, err := b.accountService.OpenAccount(commandType)
 		if err != nil {
 			return err
 		}
+		b.eventStore.PersistEvents(account.GetEvents()...)
+
+	default:
+		return errors.New(fmt.Sprintf("unknown command type %v", commandType))
 	}
+
 	return nil
 }
