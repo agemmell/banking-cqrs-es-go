@@ -2,7 +2,7 @@ package banking
 
 import (
 	"errors"
-
+	"fmt"
 	uuid "github.com/nu7hatch/gouuid"
 
 	"github.com/agemmell/banking-cqrs-es-go/seacrest"
@@ -33,8 +33,8 @@ type AccountService struct {
 	escqrs seacrest.Seacrest
 }
 
-func NewAccountService() AccountService {
-	return AccountService{&seacrest.Service{}}
+func NewAccountService() *AccountService {
+	return &AccountService{&seacrest.Service{}}
 }
 
 func NewAccount() *Account {

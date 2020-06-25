@@ -2,12 +2,12 @@ package banking
 
 import (
 	"errors"
-
+	"fmt"
 	"github.com/agemmell/banking-cqrs-es-go/seacrest"
 )
 
 type Banking struct {
-	accountService AccountService
+	accountService *AccountService
 	eventStore     seacrest.StoresEvents
 }
 

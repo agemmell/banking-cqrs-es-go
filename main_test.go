@@ -18,24 +18,21 @@ func Test_OpenAnAccount(t *testing.T) {
 	// and an OpenAccount command
 	accountService := banking.NewAccountService()
 	accountID, err := uuid.NewV4()
+	accountName := "Alex Gemmell"
 	assert.Nil(t, err)
-	openAccount, err := accountService.CreateOpenAccountWithUUID(accountID, "Alex Gemmell")
+	openAccount, err := accountService.CreateOpenAccountWithUUID(accountID, accountName)
 	assert.Nil(t, err)
 
 	// When an OpenAccount command is sent to the Banking service
-	bankingService.HandleCommand(openAccount)
+	err = bankingService.HandleCommand(openAccount)
+	assert.Nil(t, err)
 
 	// Then an AccountWasOpened event is produced
 	events := eventStore.GetAllEvents()
 	assert.Len(t, events, 1)
 
-	expectedAccountWasOpened, err := accountService.CreateAccountWasOpened(accountID.String(), "Alex Gemmell")
-	assert.Nil(t, err)
-	assert.Equal(t, expectedAccountWasOpened, events[0])
+	eventType, ok := events[0].(*banking.AccountWasOpened)
+	assert.True(t, ok)
+	assert.Equal(t, accountID.String(), eventType.AccountID())
+	assert.Equal(t, accountName, eventType.Name())
 }
-
-// // Move this to a banking service?
-// func HandleCommand(account *accounts.OpenAccount) {
-// 	// make the argument a generic command type
-//
-// }
