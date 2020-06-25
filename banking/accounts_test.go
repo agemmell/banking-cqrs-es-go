@@ -6,22 +6,22 @@ import (
 	uuid "github.com/nu7hatch/gouuid"
 	"github.com/stretchr/testify/assert"
 
-	cqrsesfakes "github.com/agemmell/banking-cqrs-es-go/cqrs-es/cqrs-esfakes"
+	"github.com/agemmell/banking-cqrs-es-go/seacrest/seacrestfakes"
 )
 
 func Test_CreateOpenAccount(t *testing.T) {
 	t.Parallel()
 
 	// Given
-	fakeCQRSESService := cqrsesfakes.FakeCQRSES{}
+	fakeSeacrestService := seacrestfakes.FakeSeacrest{}
 
 	fakeUUID := "fake-uuid-string"
-	fakeMessage := cqrsesfakes.FakeMessageDescriber{}
+	fakeMessage := seacrestfakes.FakeMessageDescriber{}
 	fakeMessage.MessageIDReturns(fakeUUID)
 	fakeMessage.MessageTypeReturns(OpenAccountMessageType)
-	fakeCQRSESService.CreateMessageOfTypeReturns(&fakeMessage, nil)
+	fakeSeacrestService.CreateMessageOfTypeReturns(&fakeMessage, nil)
 
-	accountService := AccountService{&fakeCQRSESService}
+	accountService := AccountService{&fakeSeacrestService}
 	accountID := "test-account-id-string"
 	name := "Alex Gemmell"
 
@@ -40,15 +40,15 @@ func Test_CreateOpenAccountWithUUID(t *testing.T) {
 	t.Parallel()
 
 	// Given
-	fakeCQRSESService := cqrsesfakes.FakeCQRSES{}
+	fakeSeacrestService := seacrestfakes.FakeSeacrest{}
 
 	fakeUUID := "fake-uuid-string"
-	fakeMessage := cqrsesfakes.FakeMessageDescriber{}
+	fakeMessage := seacrestfakes.FakeMessageDescriber{}
 	fakeMessage.MessageIDReturns(fakeUUID)
 	fakeMessage.MessageTypeReturns(OpenAccountMessageType)
-	fakeCQRSESService.CreateMessageOfTypeReturns(&fakeMessage, nil)
+	fakeSeacrestService.CreateMessageOfTypeReturns(&fakeMessage, nil)
 
-	accountService := AccountService{&fakeCQRSESService}
+	accountService := AccountService{&fakeSeacrestService}
 	accountID, _ := uuid.NewV4()
 	name := "Alex Gemmell"
 
@@ -67,15 +67,15 @@ func Test_CreateAccountWasOpened(t *testing.T) {
 	t.Parallel()
 
 	// Given
-	fakeCQRSESService := cqrsesfakes.FakeCQRSES{}
+	fakeSeacrestService := seacrestfakes.FakeSeacrest{}
 
 	fakeUUID := "fake-uuid-string"
-	fakeMessage := cqrsesfakes.FakeMessageDescriber{}
+	fakeMessage := seacrestfakes.FakeMessageDescriber{}
 	fakeMessage.MessageIDReturns(fakeUUID)
 	fakeMessage.MessageTypeReturns(AccountWasOpenedMessageType)
-	fakeCQRSESService.CreateMessageOfTypeReturns(&fakeMessage, nil)
+	fakeSeacrestService.CreateMessageOfTypeReturns(&fakeMessage, nil)
 
-	accountService := AccountService{&fakeCQRSESService}
+	accountService := AccountService{&fakeSeacrestService}
 	accountID := "test-account-id-string"
 	name := "Alex Gemmell"
 

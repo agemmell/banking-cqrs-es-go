@@ -5,14 +5,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	cqrses "github.com/agemmell/banking-cqrs-es-go/cqrs-es"
-	cqrsesfakes "github.com/agemmell/banking-cqrs-es-go/cqrs-es/cqrs-esfakes"
+	"github.com/agemmell/banking-cqrs-es-go/seacrest"
+	"github.com/agemmell/banking-cqrs-es-go/seacrest/seacrestfakes"
 )
 
 func Test_NewServiceNoEvents(t *testing.T) {
 	t.Parallel()
 
-	eventStore := cqrses.NewEventStore()
+	eventStore := seacrest.NewEventStore()
 	got := NewService(eventStore)
 	assert.Len(t, got.eventStore.GetAllEvents(), 0)
 }
@@ -20,7 +20,7 @@ func Test_NewServiceNoEvents(t *testing.T) {
 func Test_NewServiceWithEvents(t *testing.T) {
 	t.Parallel()
 
-	fakeMessage1 := cqrsesfakes.FakeMessageDescriber{}
+	fakeMessage1 := seacrestfakes.FakeMessageDescriber{}
 	fakeMessage1.MessageIDReturns("1234ABCD")
 	fakeMessage1.MessageTypeReturns("FakeTypeOne")
 	event1 := AccountWasOpened{
@@ -29,7 +29,7 @@ func Test_NewServiceWithEvents(t *testing.T) {
 		"Alex Gemmell",
 	}
 
-	fakeMessage2 := cqrsesfakes.FakeMessageDescriber{}
+	fakeMessage2 := seacrestfakes.FakeMessageDescriber{}
 	fakeMessage2.MessageIDReturns("9012IJKL")
 	fakeMessage2.MessageTypeReturns("FakeTypeTwo")
 	event2 := AccountWasOpened{
@@ -38,7 +38,7 @@ func Test_NewServiceWithEvents(t *testing.T) {
 		"Andrew Garfield",
 	}
 
-	eventStore := cqrses.NewEventStore(event1, event2)
+	eventStore := seacrest.NewEventStore(event1, event2)
 	got := NewService(eventStore)
 	allEvents := got.eventStore.GetAllEvents()
 	assert.Len(t, allEvents, 2)

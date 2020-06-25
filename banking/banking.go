@@ -1,9 +1,13 @@
 package banking
 
-import cqrses "github.com/agemmell/banking-cqrs-es-go/cqrs-es"
+import (
+	"errors"
+
+	"github.com/agemmell/banking-cqrs-es-go/seacrest"
+)
 
 type Banking struct {
-	eventStore cqrses.StoresEvents
+	eventStore     seacrest.StoresEvents
 }
 
 func NewService(eventStore cqrses.StoresEvents) Banking {

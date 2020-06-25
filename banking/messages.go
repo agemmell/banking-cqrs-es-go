@@ -1,12 +1,12 @@
 package banking
 
-import cqrses "github.com/agemmell/banking-cqrs-es-go/cqrs-es"
+import "github.com/agemmell/banking-cqrs-es-go/seacrest"
 
 const OpenAccountMessageType = "OpenAccount"
 const AccountWasOpenedMessageType = "AccountWasOpened"
 
 type OpenAccount struct {
-	cqrses.MessageDescriber
+	seacrest.MessageDescriber
 	accountID string
 	name      string
 }
@@ -20,7 +20,7 @@ func (c *OpenAccount) Name() string {
 }
 
 type AccountWasOpened struct {
-	cqrses.MessageDescriber
+	seacrest.MessageDescriber
 	accountID string
 	name      string
 }

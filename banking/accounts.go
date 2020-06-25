@@ -3,15 +3,16 @@ package banking
 import (
 	uuid "github.com/nu7hatch/gouuid"
 
-	cqrses "github.com/agemmell/banking-cqrs-es-go/cqrs-es"
+	"github.com/agemmell/banking-cqrs-es-go/seacrest"
 )
 
 type AccountService struct {
-	cqrsesService cqrses.CQRSES
+	escqrs seacrest.Seacrest
+}
 }
 
 func (as *AccountService) CreateOpenAccount(accountID string, name string) (*OpenAccount, error) {
-	message, err := as.cqrsesService.CreateMessageOfType(OpenAccountMessageType)
+	message, err := as.escqrs.CreateMessageOfType(OpenAccountMessageType)
 	if err != nil {
 		return nil, err
 	}
@@ -23,7 +24,7 @@ func (as *AccountService) CreateOpenAccount(accountID string, name string) (*Ope
 }
 
 func (as *AccountService) CreateAccountWasOpened(accountID string, name string) (*AccountWasOpened, error) {
-	message, err := as.cqrsesService.CreateMessageOfType(AccountWasOpenedMessageType)
+	message, err := as.escqrs.CreateMessageOfType(AccountWasOpenedMessageType)
 	if err != nil {
 		return nil, err
 	}
