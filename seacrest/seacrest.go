@@ -1,4 +1,4 @@
-package cqrs_es
+package seacrest
 
 import uuid "github.com/nu7hatch/gouuid"
 
@@ -15,8 +15,8 @@ type CommandHandler interface {
 	HandleCommand() error
 }
 
-//counterfeiter:generate . CQRSES
-type CQRSES interface {
+//counterfeiter:generate . Seacrest
+type Seacrest interface {
 	CreateUUID() (*uuid.UUID, error)
 	CreateUUIDString() (string, error)
 	CreateMessageOfType(messageType string) (MessageDescriber, error)
@@ -27,17 +27,17 @@ type Message struct {
 	messageType string
 }
 
-type CQRSESService struct{}
+type Service struct{}
 
-func (m *Message) MessageID() string {
+func (m Message) MessageID() string {
 	return m.messageID
 }
 
-func (m *Message) MessageType() string {
+func (m Message) MessageType() string {
 	return m.messageType
 }
 
-func (s *CQRSESService) CreateUUID() (*uuid.UUID, error) {
+func (s *Service) CreateUUID() (*uuid.UUID, error) {
 	uuid4, err := uuid.NewV4()
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (s *CQRSESService) CreateUUID() (*uuid.UUID, error) {
 	return uuid4, nil
 }
 
-func (s *CQRSESService) CreateUUIDString() (string, error) {
+func (s *Service) CreateUUIDString() (string, error) {
 	uuid4, err := s.CreateUUID()
 	if err != nil {
 		return "", err
@@ -55,13 +55,13 @@ func (s *CQRSESService) CreateUUIDString() (string, error) {
 	return uuid4.String(), nil
 }
 
-func (s *CQRSESService) CreateMessageOfType(messageType string) (MessageDescriber, error) {
+func (s *Service) CreateMessageOfType(messageType string) (MessageDescriber, error) {
 	messageID, err := s.CreateUUIDString()
 	if err != nil {
 		return nil, err
 	}
 
-	return &Message{
+	return Message{
 		messageID,
 		messageType,
 	}, nil

@@ -1,4 +1,4 @@
-package cqrs_es
+package seacrest
 
 import (
 	"testing"

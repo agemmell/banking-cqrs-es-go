@@ -1,4 +1,4 @@
-package cqrs_es
+package seacrest
 
 import (
 	"testing"
@@ -6,31 +6,31 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_CQRSESService_CreateMessageOfType(t *testing.T) {
+func Test_SeacrestService_CreateMessageOfType(t *testing.T) {
 	t.Parallel()
 
 	testMessageType := "TestMessageType"
 
-	s := &CQRSESService{}
+	s := &Service{}
 	got, err := s.CreateMessageOfType(testMessageType)
 	assert.Nil(t, err)
 	assert.Equal(t, testMessageType, got.MessageType())
 }
 
-func Test_CQRSESService_CreateUUID(t *testing.T) {
+func Test_SeacrestService_CreateUUID(t *testing.T) {
 	t.Parallel()
 
-	CQRSESService := CQRSESService{}
-	got, err := CQRSESService.CreateUUID()
+	SeacrestService := Service{}
+	got, err := SeacrestService.CreateUUID()
 	assert.Nil(t, err)
 	assert.Regexp(t, `(?i)^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[0-9A-F]{4}-[0-9A-F]{12}$`, got.String())
 }
 
-func Test_CQRSESService_CreateUUIDString(t *testing.T) {
+func Test_SeacrestService_CreateUUIDString(t *testing.T) {
 	t.Parallel()
 
-	CQRSESService := CQRSESService{}
-	got, err := CQRSESService.CreateUUIDString()
+	SeacrestService := Service{}
+	got, err := SeacrestService.CreateUUIDString()
 	assert.Nil(t, err)
 	assert.True(t, len(got) > 0)
 }
