@@ -16,10 +16,10 @@ func Test_OpenAnAccount(t *testing.T) {
 	bankingService := banking.NewService(eventStore)
 
 	// and an OpenAccount command
-	accountService := banking.NewAccountService()
 	accountID, err := uuid.NewV4()
-	accountName := "Alex Gemmell"
 	assert.Nil(t, err)
+	accountName := "Alex Gemmell"
+	accountService := banking.NewAccountService()
 	openAccount, err := accountService.CreateOpenAccountWithUUID(accountID, accountName)
 	assert.Nil(t, err)
 

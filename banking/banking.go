@@ -25,7 +25,7 @@ func (b *Banking) HandleCommand(command seacrest.MessageDescriber) error {
 		b.eventStore.PersistEvents(account.GetEvents()...)
 
 	default:
-		return errors.New(fmt.Sprintf("unknown command type %v", commandType))
+		return errors.New(fmt.Sprintf("unknown command type %v", commandType.MessageType()))
 	}
 
 	return nil

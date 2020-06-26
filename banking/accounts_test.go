@@ -89,3 +89,19 @@ func Test_CreateAccountWasOpened(t *testing.T) {
 	assert.Equal(t, fakeUUID, got.MessageID())
 	assert.Equal(t, AccountWasOpenedMessageType, got.MessageType())
 }
+
+func Test_Account_ApplyEventUnknownType(t *testing.T) {
+	t.Parallel()
+
+	// Given
+	account := Account{}
+
+	fakeMessageUnknownType := seacrestfakes.FakeMessageDescriber{}
+	fakeMessageUnknownType.MessageTypeReturns("test-type")
+
+	// When
+	err := account.ApplyEvent(&fakeMessageUnknownType)
+
+	// Then
+	assert.Equal(t, "unknown event type test-type", err.Error())
+}

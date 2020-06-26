@@ -59,7 +59,7 @@ func (account *Account) ApplyEvent(event seacrest.MessageDescriber) error {
 		account.aggregateID = eventType.AccountID()
 		account.version++
 	default:
-		return errors.New(fmt.Sprintf("unknown event type %v", eventType))
+		return errors.New(fmt.Sprintf("unknown event type %v", eventType.MessageType()))
 	}
 	return nil
 }

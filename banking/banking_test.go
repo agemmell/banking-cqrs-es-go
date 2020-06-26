@@ -49,5 +49,25 @@ func Test_NewServiceWithEvents(t *testing.T) {
 func TestService_HandleCommand(t *testing.T) {
 	t.Parallel()
 
+	// Given
+	//eventStore := seacrest.NewEventStore()
+	//got := NewService(eventStore)
 	// todo
+}
+
+func Test_HandleCommand_UnknownMessage(t *testing.T) {
+	t.Parallel()
+
+	// Given
+	eventStore := seacrest.NewEventStore()
+	bankingService := NewService(eventStore)
+
+	fakeMessageUnknownType := seacrestfakes.FakeMessageDescriber{}
+	fakeMessageUnknownType.MessageTypeReturns("test-type")
+
+	// When
+	err := bankingService.HandleCommand(&fakeMessageUnknownType)
+
+	// Then
+	assert.Equal(t, "unknown command type test-type", err.Error())
 }
