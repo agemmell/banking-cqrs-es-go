@@ -6,13 +6,18 @@ import (
 	"github.com/agemmell/banking-cqrs-es-go/seacrest"
 )
 
-type Banking struct {
-	accountService *AccountService
-	eventStore     seacrest.StoresEvents
+type StoresEvents interface {
+	GetAllEvents() []Message
+	PersistEvents(events ...Message)
 }
 
-func NewService(eventStore seacrest.StoresEvents) Banking {
-	return Banking{NewAccountService(), eventStore}
+type Banking struct {
+	accountService *AccountService
+	eventStore     StoresEvents
+}
+
+func NewService(eventStore StoresEvents, uuidGenerator GeneratesUUIDs) Banking {
+	return Banking{NewAccountService(uuidGenerator), eventStore}
 }
 
 func (b *Banking) HandleCommand(command seacrest.MessageDescriber) error {

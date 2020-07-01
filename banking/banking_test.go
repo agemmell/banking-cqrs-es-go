@@ -13,7 +13,16 @@ func Test_NewServiceNoEvents(t *testing.T) {
 	t.Parallel()
 
 	eventStore := seacrest.NewEventStore()
-	got := NewService(eventStore)
+	uuidService := UuidService{}
+	// todo Okay, how to resolve? The EventStore concrete isn't matching the Account StoresEvents interface
+	// even though the signatures look the same - the MessageDescriber interface they return is technically different?
+	// --NOPE--Maybe one or both eventstore and banking need to return concrete Message rather than MessageDescriber
+	// I think one package is just going to have to depend on the other for an interface or struct.
+
+	// I think concrete Message struct belongs in EventStore pkg.  Maybe start by adding that there.
+	// Then where we use it in other pkgs we just expect certain functions that can return that eventstore.Message struct
+	// 
+	got := NewService(eventStore, &uuidService)
 	assert.Len(t, got.eventStore.GetAllEvents(), 0)
 }
 

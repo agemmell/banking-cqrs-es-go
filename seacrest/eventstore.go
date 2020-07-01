@@ -1,8 +1,21 @@
 package seacrest
 
-type StoresEvents interface {
-	GetAllEvents() []MessageDescriber
-	PersistEvents(events ...MessageDescriber)
+type MessageDescriber interface {
+	MessageID() string
+	MessageType() string
+}
+
+type Message struct {
+	messageID   string
+	messageType string
+}
+
+func (m *Message) MessageID() string {
+	return m.messageID
+}
+
+func (m *Message) MessageType() string {
+	return m.messageType
 }
 
 type EventStore struct {
@@ -13,7 +26,7 @@ func NewEventStore(events ...MessageDescriber) *EventStore {
 	return &EventStore{events}
 }
 
-func (es *EventStore) GetAllEvents() []MessageDescriber {
+func (es *EventStore) GetAllEvents() []Message {
 	return es.events
 }
 

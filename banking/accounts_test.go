@@ -36,6 +36,40 @@ func Test_CreateOpenAccount(t *testing.T) {
 	assert.Equal(t, OpenAccountMessageType, got.MessageType())
 }
 
+type uuidServiceMock struct {
+	pendingUuidString string
+	pendingError error
+}
+func (uuidServiceMock *uuidServiceMock) CreateUUIDString() (string, error) {
+	if uuidServiceMock.pendingError != nil {
+		return "", uuidServiceMock.pendingError
+	}
+
+	return uuidServiceMock.pendingUuidString, nil
+}
+
+func Test_CreateOpenAccount_NEW(t *testing.T) {
+	t.Parallel()
+
+	// Given
+	uuidServiceMock := uuidServiceMock{}
+	uuidServiceMock.pendingUuidString = "fake-uuid-string"
+	accountService := AccountService{&uuidServiceMock}
+
+	accountID := "test-account-id-string"
+	name := "Alex Gemmell"
+
+	// When
+	got, err := accountService.CreateOpenAccount(accountID, name)
+	assert.Nil(t, err)
+
+	// Then
+	assert.Equal(t, name, got.Name())
+	assert.Equal(t, accountID, got.AccountID())
+	assert.Equal(t, uuidServiceMock.pendingUuidString, got.MessageID())
+	assert.Equal(t, OpenAccountMessageType, got.MessageType())
+}
+
 func Test_CreateOpenAccountWithUUID(t *testing.T) {
 	t.Parallel()
 

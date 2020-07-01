@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 	uuid "github.com/nu7hatch/gouuid"
-
-	"github.com/agemmell/banking-cqrs-es-go/seacrest"
 )
 
 // todo we're going to have account-related command handler functions in here
@@ -14,13 +12,13 @@ type AggregateDescriber interface {
 	AggregateID() string
 	Version() int
 	ApplyEvent()
-	GetEvents() []seacrest.MessageDescriber
+	GetEvents() []MessageDescriber
 }
 
 type Aggregate struct {
 	aggregateID string
 	version     int
-	events      []seacrest.MessageDescriber
+	events      []MessageDescriber
 }
 
 type Account struct {
@@ -29,12 +27,23 @@ type Account struct {
 	Aggregate
 }
 
-type AccountService struct {
-	escqrs seacrest.Seacrest
+type MessageDescriber interface {
+	MessageID() string
+	MessageType() string
 }
 
-func NewAccountService() *AccountService {
-	return &AccountService{&seacrest.Service{}}
+type GeneratesUUIDs interface {
+	CreateUUIDString() (string, error)
+}
+
+// What if this was unexported? accountService?
+// Would the NewAccountService func still be able to return it outside of the package?
+type AccountService struct {
+	uuidService GeneratesUUIDs
+}
+
+func NewAccountService(uuidService GeneratesUUIDs) *AccountService {
+	return &AccountService{uuidService}
 }
 
 func NewAccount() *Account {
@@ -51,7 +60,7 @@ func (account *Account) Version() int {
 	return account.version
 }
 
-func (account *Account) ApplyEvent(event seacrest.MessageDescriber) error {
+func (account *Account) ApplyEvent(event MessageDescriber) error {
 	switch eventType := event.(type) {
 	case *AccountWasOpened:
 		account.accountID = eventType.AccountID()
@@ -64,34 +73,47 @@ func (account *Account) ApplyEvent(event seacrest.MessageDescriber) error {
 	return nil
 }
 
-func (account *Account) GetEvents() []seacrest.MessageDescriber {
+func (account *Account) GetEvents() []MessageDescriber {
 	return account.events
 }
 
+func (account *Account) GetNewEvents() []MessageDescriber {
+	/*
+		todo How do we apply events and retrieve new events for persisting to event store?
+		todo What about aggregate version number? Am I doing that right?
+	*/
+	return []MessageDescriber{}
+}
 
-func (account *Account) RecordEvent(event seacrest.MessageDescriber) {
+func (account *Account) RecordEvent(event MessageDescriber) {
 	account.events = append(account.events, event)
 }
 
 func (as *AccountService) CreateOpenAccount(accountID string, name string) (*OpenAccount, error) {
-	message, err := as.escqrs.CreateMessageOfType(OpenAccountMessageType)
+	messageID, err := as.uuidService.CreateUUIDString()
 	if err != nil {
 		return nil, err
 	}
 	return &OpenAccount{
-		message,
+		Message{
+			messageID,
+			OpenAccountMessageType,
+		},
 		accountID,
 		name,
 	}, nil
 }
 
 func (as *AccountService) CreateAccountWasOpened(accountID string, name string) (*AccountWasOpened, error) {
-	message, err := as.escqrs.CreateMessageOfType(AccountWasOpenedMessageType)
+	messageID, err := as.uuidService.CreateUUIDString()
 	if err != nil {
 		return nil, err
 	}
 	return &AccountWasOpened{
-		message,
+		Message{
+			messageID,
+			AccountWasOpenedMessageType,
+		},
 		accountID,
 		name,
 	}, nil
@@ -122,3 +144,7 @@ func (as *AccountService) OpenAccount(command *OpenAccount) (*Account, error) {
 	}
 	return account, nil
 }
+
+//func (as *AccountService) CreateDepositMoney(accountID string, depositAmount int) (*DepositMoney, error) {
+//	return DepositMoney
+//}

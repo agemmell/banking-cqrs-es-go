@@ -1,12 +1,25 @@
 package banking
 
-import "github.com/agemmell/banking-cqrs-es-go/seacrest"
-
 const OpenAccountMessageType = "OpenAccount"
 const AccountWasOpenedMessageType = "AccountWasOpened"
 
+type Message struct {
+	messageID   string
+	messageType string
+}
+
+func (m *Message) MessageID() string {
+	return m.messageID
+}
+
+func (m *Message) MessageType() string {
+	return m.messageType
+}
+
+// Commands
+
 type OpenAccount struct {
-	seacrest.MessageDescriber
+	Message
 	accountID string
 	name      string
 }
@@ -19,8 +32,10 @@ func (c *OpenAccount) Name() string {
 	return c.name
 }
 
+// Events
+
 type AccountWasOpened struct {
-	seacrest.MessageDescriber
+	Message
 	accountID string
 	name      string
 }
