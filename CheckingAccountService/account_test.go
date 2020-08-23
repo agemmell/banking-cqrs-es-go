@@ -149,3 +149,42 @@ func TestAccount_WithdrawMoney(t *testing.T) {
 	assert.Len(t, account.newEvents, 1)
 	assert.IsType(t, MoneyWasWithdrawn{}, account.newEvents[0])
 }
+
+func TestAccount_CloseAccount(t *testing.T) {
+	t.Parallel()
+
+	// Given
+	accountID := "ABCD"
+	name := "Alex Gemmell"
+	accountWasOpened := AccountWasOpened{
+		AccountID: accountID,
+		Name:      name,
+	}
+	depositAmount := 1099
+	moneyWasDeposited := MoneyWasDeposited{
+		AccountID: accountID,
+		Amount:    depositAmount,
+	}
+	withdrawAmount := 1099
+	moneyWasWithdrawn := MoneyWasWithdrawn{
+		AccountID: accountID,
+		Amount:    withdrawAmount,
+	}
+	events := append([]Event{}, accountWasOpened, moneyWasDeposited, moneyWasWithdrawn)
+	account := Account{}
+	err := account.LoadFromEvents(events)
+	assert.Nil(t, err)
+
+	// When
+	err = account.CloseAccount()
+	assert.Nil(t, err)
+
+	// Then
+	assert.Equal(t, accountID, account.accountID)
+	assert.Equal(t, name, account.name)
+	assert.Equal(t, depositAmount - withdrawAmount, account.balance)
+	assert.Equal(t, false, account.open)
+	assert.Equal(t, 4, account.version)
+	assert.Len(t, account.newEvents, 1)
+	assert.IsType(t, AccountWasClosed{}, account.newEvents[0])
+}

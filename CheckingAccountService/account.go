@@ -16,6 +16,7 @@ type Account struct {
 	balance   int
 	version   int
 	newEvents []Event
+	open      bool
 }
 
 func (a *Account) AggregateID() string {
@@ -51,6 +52,7 @@ func (a *Account) ApplyEvent(event Event) error {
 	case AccountWasOpened:
 		a.accountID = eventType.AccountID
 		a.name = eventType.Name
+		a.open = true
 		a.balance = 0
 		a.version = 1
 	case MoneyWasDeposited:
@@ -60,6 +62,9 @@ func (a *Account) ApplyEvent(event Event) error {
 		a.balance -= eventType.Amount
 		a.version++
 	case WithdrawFailedDueToInsufficientFunds:
+		a.version++
+	case AccountWasClosed:
+		a.open = false
 		a.version++
 	default:
 		eventStruct := reflect.TypeOf(eventType).String()
@@ -99,7 +104,7 @@ func (a *Account) OpenAccount(accountID string, name string) error {
 // DepositMoney: deposit money into an account
 func (a *Account) DepositMoney(amount int) error {
 
-	if len(a.accountID) <= 0 {
+	if a.open == false {
 		return errors.New(fmt.Sprintf("cannot deposit money into an unopened account [account: %+v]", a))
 	}
 
@@ -118,7 +123,7 @@ func (a *Account) DepositMoney(amount int) error {
 // WithdrawMoney: withdraw money from an account
 func (a *Account) WithdrawMoney(amount int) error {
 
-	if len(a.accountID) <= 0 {
+	if a.open == false {
 		return errors.New(fmt.Sprintf("cannot withdraw money from an unopened account [account: %+v]", a))
 	}
 
@@ -134,6 +139,24 @@ func (a *Account) WithdrawMoney(amount int) error {
 	event := WithdrawFailedDueToInsufficientFunds{
 		a.accountID,
 		amount,
+	}
+
+	return a.raiseEvent(event)
+}
+
+// CloseAccount: close the account
+func (a *Account) CloseAccount() error {
+
+	if a.open == false {
+		return errors.New(fmt.Sprintf("cannot close a closed account [account: %+v]", a))
+	}
+
+	if a.balance > 0 {
+		return errors.New(fmt.Sprintf("cannot close an account with a balance [account: %+v]", a))
+	}
+
+	event := AccountWasClosed{
+		a.accountID,
 	}
 
 	return a.raiseEvent(event)

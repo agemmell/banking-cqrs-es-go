@@ -6,7 +6,6 @@ type OpenAccount struct {
 	AccountID string
 	Name      string
 }
-
 type DepositMoney struct {
 	AccountID string
 	Amount    int
@@ -21,12 +20,10 @@ type AccountWasOpened struct {
 	AccountID string
 	Name      string
 }
-
 type MoneyWasDeposited struct {
 	AccountID string
 	Amount    int
 }
-
 type MoneyWasWithdrawn struct {
 	AccountID string
 	Amount    int
@@ -35,8 +32,12 @@ type WithdrawFailedDueToInsufficientFunds struct {
 	AccountID string
 	Amount    int
 }
+type AccountWasClosed struct {
+	AccountID string
+}
 
 func (e AccountWasOpened) isEvent()                     {}
 func (e MoneyWasDeposited) isEvent()                    {}
 func (e MoneyWasWithdrawn) isEvent()                    {}
 func (e WithdrawFailedDueToInsufficientFunds) isEvent() {}
+func (e AccountWasClosed) isEvent()                     {}
