@@ -13,6 +13,7 @@ type Event interface {
 type Account struct {
 	accountID string
 	name      string
+	balance   int
 	version   int
 	newEvents []Event
 }
@@ -23,6 +24,16 @@ func (a *Account) AggregateID() string {
 
 func (a *Account) Version() int {
 	return a.version
+}
+
+func (a *Account) raiseEvent(event Event) error {
+	err := a.ApplyEvent(event)
+	if err != nil {
+		return err
+	}
+
+	a.RecordNewEvent(event)
+	return nil
 }
 
 func (a *Account) RecordNewEvent(event Event) {
@@ -40,7 +51,16 @@ func (a *Account) ApplyEvent(event Event) error {
 	case AccountWasOpened:
 		a.accountID = eventType.AccountID
 		a.name = eventType.Name
+		a.balance = 0
 		a.version = 1
+	case MoneyWasDeposited:
+		a.balance += eventType.Amount
+		a.version++
+	case MoneyWasWithdrawn:
+		a.balance -= eventType.Amount
+		a.version++
+	case WithdrawFailedDueToInsufficientFunds:
+		a.version++
 	default:
 		eventStruct := reflect.TypeOf(eventType).String()
 		return errors.New(fmt.Sprintf("unknown event %s", eventStruct))
@@ -51,7 +71,10 @@ func (a *Account) ApplyEvent(event Event) error {
 // LoadFromEvents: Return aggregate to state from past events without triggering side effects
 func (a *Account) LoadFromEvents(events []Event) error {
 	for _, event := range events {
-		return a.ApplyEvent(event)
+		err := a.ApplyEvent(event)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -70,12 +93,48 @@ func (a *Account) OpenAccount(accountID string, name string) error {
 		name,
 	}
 
-	err := a.ApplyEvent(event)
-	if err != nil {
-		return err
+	return a.raiseEvent(event)
+}
+
+// DepositMoney: deposit money into an account
+func (a *Account) DepositMoney(amount int) error {
+
+	if len(a.accountID) <= 0 {
+		return errors.New(fmt.Sprintf("cannot deposit money into an unopened account [account: %+v]", a))
 	}
 
-	a.RecordNewEvent(event)
+	if amount <= 0 {
+		return errors.New(fmt.Sprintf("deposit amount must be greater than 1 [amount: %+v]", amount))
+	}
 
-	return nil
+	event := MoneyWasDeposited{
+		a.accountID,
+		amount,
+	}
+
+	return a.raiseEvent(event)
+}
+
+// WithdrawMoney: withdraw money from an account
+func (a *Account) WithdrawMoney(amount int) error {
+
+	if len(a.accountID) <= 0 {
+		return errors.New(fmt.Sprintf("cannot withdraw money from an unopened account [account: %+v]", a))
+	}
+
+	if a.balance >= amount {
+		event := MoneyWasWithdrawn{
+			a.accountID,
+			amount,
+		}
+
+		return a.raiseEvent(event)
+	}
+
+	event := WithdrawFailedDueToInsufficientFunds{
+		a.accountID,
+		amount,
+	}
+
+	return a.raiseEvent(event)
 }

@@ -8,8 +8,8 @@ type OpenAccount struct {
 }
 
 type DepositMoney struct {
-	AccountID     string
-	DepositAmount int
+	AccountID string
+	Amount    int
 }
 
 func (c OpenAccount) isCommand()  {}
@@ -23,9 +23,20 @@ type AccountWasOpened struct {
 }
 
 type MoneyWasDeposited struct {
-	AccountID       string
-	DepositedAmount int
+	AccountID string
+	Amount    int
 }
 
-func (e AccountWasOpened) isEvent()  {}
-func (e MoneyWasDeposited) isEvent() {}
+type MoneyWasWithdrawn struct {
+	AccountID string
+	Amount    int
+}
+type WithdrawFailedDueToInsufficientFunds struct {
+	AccountID string
+	Amount    int
+}
+
+func (e AccountWasOpened) isEvent()                     {}
+func (e MoneyWasDeposited) isEvent()                    {}
+func (e MoneyWasWithdrawn) isEvent()                    {}
+func (e WithdrawFailedDueToInsufficientFunds) isEvent() {}
