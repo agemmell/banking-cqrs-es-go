@@ -189,7 +189,7 @@ func TestAccount_CloseAccount(t *testing.T) {
 	// Then
 	assert.Equal(t, id, account.id)
 	assert.Equal(t, name, account.name)
-	assert.Equal(t, depositAmount-withdrawAmount, account.balance)
+	assert.Equal(t, 0, account.balance)
 	assert.Equal(t, false, account.open)
 	assert.Equal(t, uint(4), account.version)
 	assert.Len(t, account.newEvents, 1)
