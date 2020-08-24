@@ -12,7 +12,7 @@ func Test_NewServiceNoEvents(t *testing.T) {
 
 	eventStore := Seacrest.NewEventStore()
 	checkingAccountService := New(eventStore)
-	assert.Len(t, checkingAccountService.eventStore.GetAllEvents(), 0)
+	assert.Len(t, checkingAccountService.GetAllEvents(), 0)
 }
 
 type UnknownCommand struct{}
@@ -45,8 +45,8 @@ func Test_OpenAnAccount(t *testing.T) {
 	accountUUID, err := uuid.NewV4()
 	assert.Nil(t, err)
 	openAccount := OpenAccount{
-		AccountID: accountUUID.String(),
-		Name:      "Alex Gemmell",
+		ID:   accountUUID.String(),
+		Name: "Alex Gemmell",
 	}
 
 	// When
@@ -54,11 +54,11 @@ func Test_OpenAnAccount(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Then
-	events := eventStore.GetAllEvents()
+	events := checkingAccountService.GetAllEvents()
 	assert.Len(t, events, 1)
 
 	eventType, ok := events[0].(AccountWasOpened)
 	assert.True(t, ok)
-	assert.Equal(t, openAccount.AccountID, eventType.AccountID)
+	assert.Equal(t, openAccount.ID, eventType.ID)
 	assert.Equal(t, openAccount.Name, eventType.Name)
 }

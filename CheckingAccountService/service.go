@@ -3,6 +3,7 @@ package CheckingAccountService
 import (
 	"errors"
 	"fmt"
+	"github.com/agemmell/banking-cqrs-es-go/Seacrest"
 	"reflect"
 )
 
@@ -11,8 +12,9 @@ type Command interface {
 }
 
 type StoresEvents interface {
-	GetAllEvents() []interface{}
-	PersistEvents(events ...interface{})
+	GetAllEvents() []Seacrest.Event
+	PersistEvents(events ...Seacrest.Event)
+	GetEventsByAggregateID(aggregateID string) map[uint]Seacrest.Event
 }
 
 type CheckingAccountService struct {
@@ -29,7 +31,20 @@ func (cas *CheckingAccountService) HandleCommand(command Command) error {
 	switch commandType := command.(type) {
 	case OpenAccount:
 		account := Account{}
-		err := account.OpenAccount(commandType.AccountID, commandType.Name)
+		err := account.OpenAccount(commandType.ID, commandType.Name)
+		if err != nil {
+			return err
+		}
+		cas.PersistEvents(account.GetNewEvents()...)
+
+	case DepositMoney:
+		events := cas.GetEventsByAggregateID(commandType.ID)
+		account := Account{}
+		err := account.LoadFromEvents(events)
+		if err != nil {
+			return err
+		}
+		err = account.DepositMoney(commandType.Amount)
 		if err != nil {
 			return err
 		}
@@ -43,11 +58,29 @@ func (cas *CheckingAccountService) HandleCommand(command Command) error {
 	return nil
 }
 
-func (cas *CheckingAccountService) PersistEvents(events ...Event) {
-	// convert to interface{} for the event store to use
-	e := make([]interface{}, len(events))
+func (cas *CheckingAccountService) GetAllEvents() []Event {
+	events := cas.eventStore.GetAllEvents()
+	e := make([]Event, len(events))
 	for i, v := range events {
-		e[i] = v
+		e[i] = v.(Event)
+	}
+	return e
+}
+
+func (cas *CheckingAccountService) PersistEvents(events ...Event) {
+	// convert to Seacrest.Event for the event store to use
+	e := make([]Seacrest.Event, len(events))
+	for i, v := range events {
+		e[i] = v.(Seacrest.Event)
 	}
 	cas.eventStore.PersistEvents(e...)
+}
+
+func (cas *CheckingAccountService) GetEventsByAggregateID(aggregateID string) []Event {
+	events := cas.eventStore.GetEventsByAggregateID(aggregateID)
+	e := make([]Event, len(events))
+	for i, v := range events {
+		e[i] = v.(Event)
+	}
+	return e
 }

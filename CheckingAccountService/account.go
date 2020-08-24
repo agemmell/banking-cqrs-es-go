@@ -11,19 +11,19 @@ type Event interface {
 }
 
 type Account struct {
-	accountID string
+	id        string
 	name      string
 	balance   int
-	version   int
+	version   uint
 	newEvents []Event
 	open      bool
 }
 
 func (a *Account) AggregateID() string {
-	return a.accountID
+	return a.id
 }
 
-func (a *Account) Version() int {
+func (a *Account) Version() uint {
 	return a.version
 }
 
@@ -50,22 +50,22 @@ func (a *Account) ApplyEvent(event Event) error {
 
 	switch eventType := event.(type) {
 	case AccountWasOpened:
-		a.accountID = eventType.AccountID
+		a.id = eventType.ID
 		a.name = eventType.Name
 		a.open = true
 		a.balance = 0
-		a.version = 1
+		a.version = eventType.Version()
 	case MoneyWasDeposited:
 		a.balance += eventType.Amount
-		a.version++
+		a.version = eventType.Version()
 	case MoneyWasWithdrawn:
 		a.balance -= eventType.Amount
-		a.version++
+		a.version = eventType.Version()
 	case WithdrawFailedDueToInsufficientFunds:
-		a.version++
+		a.version = eventType.Version()
 	case AccountWasClosed:
 		a.open = false
-		a.version++
+		a.version = eventType.Version()
 	default:
 		eventStruct := reflect.TypeOf(eventType).String()
 		return errors.New(fmt.Sprintf("unknown event %s", eventStruct))
@@ -87,15 +87,16 @@ func (a *Account) LoadFromEvents(events []Event) error {
 // Command Handlers: protect aggregate invariants before throwing an event
 
 // OpenAccount: open a new account
-func (a *Account) OpenAccount(accountID string, name string) error {
+func (a *Account) OpenAccount(id string, name string) error {
 
-	if len(a.accountID) > 0 && len(a.name) > 0 && a.version == 0 {
+	if len(a.id) > 0 && len(a.name) > 0 && a.version == 0 {
 		return errors.New(fmt.Sprintf("cannot open an already open account [account: %+v]", a))
 	}
 
 	event := AccountWasOpened{
-		accountID,
-		name,
+		ID:      id,
+		Name:    name,
+		version: a.version + 1,
 	}
 
 	return a.raiseEvent(event)
@@ -113,8 +114,9 @@ func (a *Account) DepositMoney(amount int) error {
 	}
 
 	event := MoneyWasDeposited{
-		a.accountID,
-		amount,
+		ID:      a.id,
+		Amount:  amount,
+		version: a.version + 1,
 	}
 
 	return a.raiseEvent(event)
@@ -129,16 +131,18 @@ func (a *Account) WithdrawMoney(amount int) error {
 
 	if a.balance >= amount {
 		event := MoneyWasWithdrawn{
-			a.accountID,
-			amount,
+			ID:      a.id,
+			Amount:  amount,
+			version: a.version + 1,
 		}
 
 		return a.raiseEvent(event)
 	}
 
 	event := WithdrawFailedDueToInsufficientFunds{
-		a.accountID,
-		amount,
+		ID:      a.id,
+		Amount:  amount,
+		version: a.version + 1,
 	}
 
 	return a.raiseEvent(event)
@@ -156,7 +160,8 @@ func (a *Account) CloseAccount() error {
 	}
 
 	event := AccountWasClosed{
-		a.accountID,
+		ID:      a.id,
+		version: a.version + 1,
 	}
 
 	return a.raiseEvent(event)
