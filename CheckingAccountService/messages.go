@@ -10,45 +10,43 @@ type DepositMoney struct {
 	ID     string
 	Amount int
 }
+type WithdrawMoney struct {
+	ID     string
+	Amount int
+}
+type CloseAccount struct {
+	ID string
+}
 
-func (c OpenAccount) isCommand()  {}
-func (c DepositMoney) isCommand() {}
+func (c OpenAccount) isCommand()   {}
+func (c DepositMoney) isCommand()  {}
+func (c WithdrawMoney) isCommand() {}
+func (c CloseAccount) isCommand()  {}
 
 // Events
 
 type AccountWasOpened struct {
-	ID      string
-	Name    string
-	version uint
+	ID   string
+	Name string
 }
 type MoneyWasDeposited struct {
-	ID      string
-	Amount  int
-	version uint
+	ID     string
+	Amount int
 }
 type MoneyWasWithdrawn struct {
 	ID      string
 	Amount  int
-	version uint
+	Balance int
 }
 type WithdrawFailedDueToInsufficientFunds struct {
 	ID      string
 	Amount  int
-	version uint
+	Balance int
 }
 type AccountWasClosed struct {
-	ID      string
-	version uint
+	ID string
 }
 
-func (e AccountWasOpened) isEvent()                     {}
-func (e MoneyWasDeposited) isEvent()                    {}
-func (e MoneyWasWithdrawn) isEvent()                    {}
-func (e WithdrawFailedDueToInsufficientFunds) isEvent() {}
-func (e AccountWasClosed) isEvent()                     {}
-
-// AggregateID() and Version() satisfy the Seacrest.Event interface. This is needed to cast between the two when
-// persisting/getting events from the Seacrest event store
 func (e AccountWasOpened) AggregateID() string {
 	return e.ID
 }
@@ -65,18 +63,24 @@ func (e AccountWasClosed) AggregateID() string {
 	return e.ID
 }
 
-func (e AccountWasOpened) Version() uint {
-	return e.version // TODO I need to add the version to the event on creation so it gets stored in the event store - then tests wil lpass?
+const TypeAccountWasOpened = "AccountWasOpened"
+const TypeMoneyWasDeposited = "MoneyWasDeposited"
+const TypeMoneyWasWithdrawn = "MoneyWasWithdrawn"
+const TypeWithdrawFailedDueToInsufficientFunds = "WithdrawFailedDueToInsufficientFunds"
+const TypeAccountWasClosed = "AccountWasClosed"
+
+func (e AccountWasOpened) EventType() string {
+	return TypeAccountWasOpened
 }
-func (e MoneyWasDeposited) Version() uint {
-	return e.version
+func (e MoneyWasDeposited) EventType() string {
+	return TypeMoneyWasDeposited
 }
-func (e MoneyWasWithdrawn) Version() uint {
-	return e.version
+func (e MoneyWasWithdrawn) EventType() string {
+	return TypeMoneyWasWithdrawn
 }
-func (e WithdrawFailedDueToInsufficientFunds) Version() uint {
-	return e.version
+func (e WithdrawFailedDueToInsufficientFunds) EventType() string {
+	return TypeWithdrawFailedDueToInsufficientFunds
 }
-func (e AccountWasClosed) Version() uint {
-	return e.version
+func (e AccountWasClosed) EventType() string {
+	return TypeAccountWasClosed
 }
