@@ -8,6 +8,7 @@ import (
 	uuid "github.com/nu7hatch/gouuid"
 	"log"
 	"os"
+	"time"
 )
 
 type EventEnvelope struct {
@@ -16,6 +17,7 @@ type EventEnvelope struct {
 	AggregateID string
 	EventType   string
 	Payload     []byte
+	RecordedAt  int64
 }
 
 type EventStore struct {
@@ -46,11 +48,10 @@ func (es *EventStore) PersistEvent(aggregateID string, eventType string, payload
 		AggregateID: aggregateID,
 		EventType:   eventType,
 		Payload:     payload,
+		RecordedAt:  time.Now().UnixNano(),
 	}
 
-	es.PersistEventEnvelope(eventEnvelope)
-
-	return nil
+	return es.PersistEventEnvelope(eventEnvelope)
 }
 
 func (es *EventStore) GetEventsByAggregateID(aggregateID string) map[uint]EventEnvelope {
@@ -107,7 +108,10 @@ func (es *EventStore) LoadEventsFromFile(filename string) error {
 		if err != nil {
 			return err
 		}
-		es.PersistEventEnvelope(eventEnvelope)
+		err = es.PersistEventEnvelope(eventEnvelope)
+		if err != nil {
+			return err
+		}
 	}
 
 	if err := scanner.Err(); err != nil {

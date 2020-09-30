@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"time"
 )
 
 type Event interface {
@@ -90,8 +91,9 @@ func (a *Account) OpenAccount(id string, name string) error {
 	}
 
 	event := AccountWasOpened{
-		ID:   id,
-		Name: name,
+		ID:        id,
+		Name:      name,
+		Timestamp: time.Now().UnixNano(),
 	}
 
 	return a.raiseEvent(&event)
@@ -109,8 +111,9 @@ func (a *Account) DepositMoney(amount int) error {
 	}
 
 	event := MoneyWasDeposited{
-		ID:     a.id,
-		Amount: amount,
+		ID:        a.id,
+		Amount:    amount,
+		Timestamp: time.Now().UnixNano(),
 	}
 
 	return a.raiseEvent(&event)
@@ -125,9 +128,10 @@ func (a *Account) WithdrawMoney(amount int) error {
 
 	if a.balance >= amount {
 		event := MoneyWasWithdrawn{
-			ID:     a.id,
-			Amount: amount,
-			Balance: a.balance - amount,
+			ID:        a.id,
+			Amount:    amount,
+			Balance:   a.balance - amount,
+			Timestamp: time.Now().UnixNano(),
 		}
 
 		return a.raiseEvent(&event)
@@ -151,9 +155,10 @@ func (a *Account) WithdrawMoney(amount int) error {
 	//   - https://groups.google.com/g/dddcqrs/c/pDHW7ErGNt0
 
 	event := WithdrawFailedDueToInsufficientFunds{
-		ID:     a.id,
-		Amount: amount,
-		Balance: a.balance,
+		ID:        a.id,
+		Amount:    amount,
+		Balance:   a.balance,
+		Timestamp: time.Now().UnixNano(),
 	}
 
 	return a.raiseEvent(&event)
@@ -171,8 +176,8 @@ func (a *Account) CloseAccount() error {
 	}
 
 	event := AccountWasClosed{
-		ID: a.id,
-		//version: a.version + 1,
+		ID:        a.id,
+		Timestamp: time.Now().UnixNano(),
 	}
 
 	return a.raiseEvent(&event)

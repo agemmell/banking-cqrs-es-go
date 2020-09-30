@@ -28,23 +28,28 @@ func (c CloseAccount) isCommand()  {}
 type AccountWasOpened struct {
 	ID   string
 	Name string
+	Timestamp int64
 }
 type MoneyWasDeposited struct {
 	ID     string
 	Amount int
+	Timestamp int64
 }
 type MoneyWasWithdrawn struct {
 	ID      string
 	Amount  int
 	Balance int
+	Timestamp int64
 }
 type WithdrawFailedDueToInsufficientFunds struct {
 	ID      string
 	Amount  int
 	Balance int
+	Timestamp int64
 }
 type AccountWasClosed struct {
 	ID string
+	Timestamp int64
 }
 
 func (e AccountWasOpened) AggregateID() string {

@@ -7,6 +7,7 @@ import (
 	"github.com/agemmell/banking-cqrs-es-go/Seacrest"
 	uuid "github.com/nu7hatch/gouuid"
 	"reflect"
+	"time"
 )
 
 type Command interface {
@@ -162,20 +163,48 @@ func (cas *CheckingAccountService) GenerateCheckingAccountEvents() error {
 	}
 	aggregateID := UUID.String()
 
+	UUID, err = uuid.NewV4()
+	if err != nil {
+		return err
+	}
+	aggregateID2 := UUID.String()
+
 	var events []Event
 	events = append(events,
 		AccountWasOpened{
-			ID:   aggregateID,
-			Name: "Alex Gemmell",
+			ID:        aggregateID,
+			Name:      "Alex Gemmell",
+			Timestamp: time.Now().UnixNano(),
 		}, MoneyWasDeposited{
-			ID:     aggregateID,
-			Amount: 12400,
+			ID:        aggregateID,
+			Amount:    12400,
+			Timestamp: time.Now().UnixNano(),
+		}, AccountWasOpened{
+			ID:        aggregateID2,
+			Name:      "Bobby Tables",
+			Timestamp: time.Now().UnixNano(),
 		}, MoneyWasDeposited{
-			ID:     aggregateID,
-			Amount: 1200,
+			ID:        aggregateID,
+			Amount:    1200,
+			Timestamp: time.Now().UnixNano(),
+		}, MoneyWasDeposited{
+			ID:        aggregateID2,
+			Amount:    144000,
+			Timestamp: time.Now().UnixNano(),
+		}, MoneyWasDeposited{
+			ID:        aggregateID2,
+			Amount:    1299,
+			Timestamp: time.Now().UnixNano(),
 		}, MoneyWasWithdrawn{
-			ID:     aggregateID,
-			Amount: 4200,
+			ID:        aggregateID,
+			Amount:    4200,
+			Balance:   9400,
+			Timestamp: time.Now().UnixNano(),
+		}, MoneyWasWithdrawn{
+			ID:        aggregateID2,
+			Amount:    55288,
+			Balance:   90011,
+			Timestamp: time.Now().UnixNano(),
 		}, MoneyWasDeposited{
 			ID:     aggregateID,
 			Amount: 999,

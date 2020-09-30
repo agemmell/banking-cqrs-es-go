@@ -168,6 +168,7 @@ func TestAccount_WithdrawFailedDueToInsufficientFunds(t *testing.T) {
 	moneyWasWithdrawn := MoneyWasWithdrawn{
 		ID:     id,
 		Amount: 1099,
+		Balance: 0,
 	}
 	events := append([]Event{}, &accountWasOpened, &moneyWasDeposited, &moneyWasWithdrawn)
 	account := Account{}
@@ -205,6 +206,7 @@ func TestAccount_CloseAccount(t *testing.T) {
 	moneyWasWithdrawn := MoneyWasWithdrawn{
 		ID:     id,
 		Amount: 1099,
+		Balance: 0,
 	}
 	events := append([]Event{}, &accountWasOpened, &moneyWasDeposited, &moneyWasWithdrawn)
 	account := Account{}
