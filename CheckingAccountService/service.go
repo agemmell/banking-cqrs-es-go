@@ -5,8 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/agemmell/banking-cqrs-es-go/Seacrest"
+	"github.com/icrowley/fake"
 	uuid "github.com/nu7hatch/gouuid"
+	"math/rand"
 	"reflect"
+	"sort"
 	"time"
 )
 
@@ -155,88 +158,6 @@ func (cas *CheckingAccountService) GetEventsByAggregateID(aggregateID string) ([
 	return events, nil
 }
 
-// GenerateCheckingAccountEvents: for test purposes
-func (cas *CheckingAccountService) GenerateCheckingAccountEvents() error {
-	UUID, err := uuid.NewV4()
-	if err != nil {
-		return err
-	}
-	aggregateID := UUID.String()
-
-	UUID, err = uuid.NewV4()
-	if err != nil {
-		return err
-	}
-	aggregateID2 := UUID.String()
-
-	var events []Event
-	events = append(events,
-		AccountWasOpened{
-			ID:        aggregateID,
-			Name:      "Alex Gemmell",
-			Timestamp: time.Now().UnixNano(),
-		}, MoneyWasDeposited{
-			ID:        aggregateID,
-			Amount:    12400,
-			Timestamp: time.Now().UnixNano(),
-		}, AccountWasOpened{
-			ID:        aggregateID2,
-			Name:      "Bobby Tables",
-			Timestamp: time.Now().UnixNano(),
-		}, MoneyWasDeposited{
-			ID:        aggregateID,
-			Amount:    1200,
-			Timestamp: time.Now().UnixNano(),
-		}, MoneyWasDeposited{
-			ID:        aggregateID2,
-			Amount:    144000,
-			Timestamp: time.Now().UnixNano(),
-		}, MoneyWasDeposited{
-			ID:        aggregateID2,
-			Amount:    1299,
-			Timestamp: time.Now().UnixNano(),
-		}, MoneyWasWithdrawn{
-			ID:        aggregateID,
-			Amount:    4200,
-			Balance:   9400,
-			Timestamp: time.Now().UnixNano(),
-		}, MoneyWasWithdrawn{
-			ID:        aggregateID2,
-			Amount:    55288,
-			Balance:   90011,
-			Timestamp: time.Now().UnixNano(),
-		}, MoneyWasDeposited{
-			ID:     aggregateID,
-			Amount: 999,
-		},
-	)
-
-	err = cas.PersistEvents(events...)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (cas *CheckingAccountService) WriteEventsToFile(filename string) error {
-	err := cas.eventStore.WriteEventsToFile(filename)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (cas *CheckingAccountService) LoadEventsFromFile(filename string) error {
-	err := cas.eventStore.LoadEventsFromFile(filename)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (cas *CheckingAccountService) TransformEnvelopeToEvent(envelope Seacrest.EventEnvelope) (Event, error) {
 	var event Event
 	switch envelope.EventType {
@@ -268,4 +189,163 @@ func (cas *CheckingAccountService) HydrateEvent(payload []byte, event Event) err
 		return err
 	}
 	return nil
+}
+
+func (cas *CheckingAccountService) WriteEventsToFile(filename string) error {
+	err := cas.eventStore.WriteEventsToFile(filename)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (cas *CheckingAccountService) LoadEventsFromFile(filename string) error {
+	err := cas.eventStore.LoadEventsFromFile(filename)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// AutoGenerateEvents
+func (cas *CheckingAccountService) AutoGenerateEvents() error {
+	var allCustomerEvents []Event
+	customerCount := 100000
+	closeAccountChance := float32(0.1)
+	randSeed := int64(99)
+	rand.Seed(randSeed)
+	fake.Seed(randSeed)
+
+	for i := 0; i < customerCount; i++ {
+		closeAccount := false
+		if rand.Float32() >= closeAccountChance {
+			closeAccount = true
+		}
+		events, err := cas.GenerateFakeCustomerEvents(closeAccount)
+		if err != nil {
+			return err
+		}
+		allCustomerEvents = append(allCustomerEvents, events...)
+	}
+
+	// TODO Improve this by making the event envelope timestamps use a faked clock. Currently all events have faked
+	//  timestamps but the envelopes don't so all events are in the order in which they were generated (customer
+	//  events are grouped together despite having mixed event timestamps)
+	sort.Slice(allCustomerEvents, func(i, j int) bool {
+		return allCustomerEvents[i].EventTimestamp() < allCustomerEvents[j].EventTimestamp()
+	})
+	err := cas.PersistEvents(allCustomerEvents...)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (cas *CheckingAccountService) GenerateFakeCustomerEvents(closeAccount bool) ([]Event, error) {
+	var events []Event
+
+	startTime := time.Date(2020, time.January, 0, 0, 0, 0, 0, time.UTC)
+	month := rand.Intn(9)
+	day := rand.Intn(31)
+	hour := time.Hour * time.Duration(rand.Intn(24))
+	minute := time.Minute * time.Duration(rand.Intn(60))
+	second := time.Second * time.Duration(rand.Intn(60))
+	startTime.AddDate(0, month, day).Add(hour).Add(minute).Add(second)
+
+	// generate a UUID
+	UUID, err := uuid.NewV4()
+	if err != nil {
+		return nil, err
+	}
+	aggregateID := UUID.String()
+
+	// generate a fake name
+	fullName := fake.FullName()
+
+	// create AccountWasOpened event
+	events = append(events, AccountWasOpened{
+		ID:        aggregateID,
+		Name:      fullName,
+		Timestamp: startTime.UnixNano(),
+	})
+
+	// create random account deposit & withdraw events
+	depositMax := rand.Intn(100000)
+	balance := 0
+	var depositAmount, withdrawnAmount int
+	depositMin := 500
+	maxEventsCount := 10
+
+	for {
+		day := rand.Intn(4)
+		hour := time.Hour * time.Duration(rand.Intn(24))
+		minute := time.Minute * time.Duration(rand.Intn(60))
+		second := time.Second * time.Duration(rand.Intn(60))
+		startTime.AddDate(0, month, day).Add(hour).Add(minute).Add(second)
+
+		if depositMax == 0 {
+			if closeAccount {
+				if balance != 0 {
+					withdrawnAmount = balance
+					balance = 0
+					events = append(events, MoneyWasWithdrawn{
+						ID:        aggregateID,
+						Amount:    withdrawnAmount,
+						Balance:   balance,
+						Timestamp: startTime.UnixNano(),
+					})
+				}
+
+				events = append(events, AccountWasClosed{
+					ID:        aggregateID,
+					Timestamp: startTime.Add(time.Millisecond * 10).UnixNano(),
+				})
+			}
+			break
+		}
+
+		withdraw := false
+		withdrawChance := float32(0.9)
+		if rand.Float32() <= withdrawChance {
+			withdraw = true
+		}
+		// Must deposit if balance is 0
+		if balance == 0 {
+			withdraw = false
+		}
+
+		if withdraw {
+			withdrawnAmount = rand.Intn(balance)
+			balance -= withdrawnAmount
+			events = append(events, MoneyWasWithdrawn{
+				ID:        aggregateID,
+				Amount:    withdrawnAmount,
+				Balance:   balance,
+				Timestamp: startTime.UnixNano(),
+			})
+		} else {
+			if depositMax <= depositMin {
+				depositAmount = depositMax
+			} else {
+				// TODO Bug for future Alex: this can potentially generate a deposit amount of zero!
+				depositAmount = rand.Intn(depositMax)
+			}
+			depositMax -= depositAmount
+			balance += depositAmount
+			events = append(events, MoneyWasDeposited{
+				ID:        aggregateID,
+				Amount:    depositAmount,
+				Timestamp: startTime.UnixNano(),
+			})
+		}
+
+		if len(events) >= maxEventsCount {
+			break
+		}
+
+	}
+
+	return events, nil
 }

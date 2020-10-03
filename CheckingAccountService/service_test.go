@@ -224,3 +224,44 @@ func Test_CloseAccount(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, closeAccount.ID, eventType.ID)
 }
+
+func Test_GenerateFakeCustomerEvents(t *testing.T) {
+	t.Parallel()
+
+	// Given
+	eventStore := Seacrest.NewEventStore()
+	checkingAccountService := New(eventStore)
+
+	// When
+	closeAccount := false
+	events, err := checkingAccountService.GenerateFakeCustomerEvents(closeAccount)
+	assert.Nil(t, err)
+
+	// Then
+	accountWasOpened := false
+	moneyWasDeposited := 0
+	moneyWasWithdrawn := 0
+	accountWasClosed := false
+	for _, event := range events {
+		if _, ok := event.(AccountWasOpened); ok {
+			accountWasOpened = true
+			continue
+		}
+		if _, ok := event.(MoneyWasDeposited); ok {
+			moneyWasDeposited += 1
+			continue
+		}
+		if _, ok := event.(MoneyWasWithdrawn); ok {
+			moneyWasWithdrawn += 1
+			continue
+		}
+		if _, ok := event.(AccountWasClosed); ok {
+			accountWasClosed = true
+			continue
+		}
+	}
+	assert.True(t, accountWasOpened, "AccountWasOpened event was not detected")
+	assert.Greater(t, moneyWasDeposited, 0, "No MoneyWasDeposited events detected")
+	assert.Greater(t, moneyWasWithdrawn, 0, "No MoneyWasWithdrawn events detected")
+	assert.False(t, accountWasClosed, "AccountWasClosed event was detected when it should not have been")
+}

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/agemmell/banking-cqrs-es-go/CheckingAccountService"
 	"github.com/agemmell/banking-cqrs-es-go/Seacrest"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 	"sort"
 )
 
@@ -31,8 +33,8 @@ func TotalBankFunds(eventStore *Seacrest.EventStore) error {
 			totalBankFunds -= moneyWasWithdrawn.Amount
 		}
 	}
-
-	fmt.Printf("Total Banks Funds = $%d\n", totalBankFunds)
+	p := message.NewPrinter(language.English)
+	fmt.Printf("Total Banks Funds = $%s\n", p.Sprintf("%d", totalBankFunds))
 
 	return nil
 }
@@ -121,8 +123,9 @@ func HighestBalanceOwners(eventStore *Seacrest.EventStore) error {
 	}
 
 	fmt.Println("Top Ten Balances:")
+	p := message.NewPrinter(language.English)
 	for i, account := range topTen {
-		fmt.Printf("%d. %d (%s: %s)\n", i+1, account.Balance, account.Name, account.ID)
+		fmt.Printf("%d. %s (%s: %s)\n", i+1, p.Sprintf("%d", account.Balance), account.Name, account.ID)
 	}
 
 	return nil
