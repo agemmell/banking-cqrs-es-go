@@ -9,6 +9,7 @@ type UnknownEvent struct{}
 
 func (uc UnknownEvent) AggregateID() string { return "ABCD" }
 func (uc UnknownEvent) EventType() string   { return "UnknownEvent" }
+func (uc UnknownEvent) EventTimestamp() int64   { return 1234567890 }
 func (uc UnknownEvent) Version() uint       { return 1 }
 func (uc UnknownEvent) isEvent()            {}
 

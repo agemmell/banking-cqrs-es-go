@@ -83,7 +83,7 @@ func Test_DepositMoney(t *testing.T) {
 
 	// When
 	depositMoney := DepositMoney{
-		ID:   id,
+		ID:     id,
 		Amount: 1099,
 	}
 	err = checkingAccountService.HandleCommand(depositMoney)
@@ -122,7 +122,7 @@ func Test_WithdrawMoney(t *testing.T) {
 
 	// When
 	withdrawMoney := WithdrawMoney{
-		ID:   id,
+		ID:     id,
 		Amount: 199,
 	}
 	err = checkingAccountService.HandleCommand(withdrawMoney)
@@ -166,7 +166,7 @@ func Test_WithdrawFailedDueToInsufficientFunds(t *testing.T) {
 
 	// When
 	withdrawMoney := WithdrawMoney{
-		ID:   id,
+		ID:     id,
 		Amount: 1,
 	}
 	err = checkingAccountService.HandleCommand(withdrawMoney)
@@ -210,7 +210,7 @@ func Test_CloseAccount(t *testing.T) {
 
 	// When
 	closeAccount := CloseAccount{
-		ID:   id,
+		ID: id,
 	}
 	err = checkingAccountService.HandleCommand(closeAccount)
 	assert.Nil(t, err)

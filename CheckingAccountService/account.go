@@ -10,6 +10,7 @@ import (
 type Event interface {
 	AggregateID() string
 	EventType() string
+	EventTimestamp() int64
 }
 
 type Account struct {
