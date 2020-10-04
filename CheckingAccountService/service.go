@@ -252,7 +252,7 @@ func (cas *CheckingAccountService) GenerateFakeCustomerEvents(closeAccount bool)
 	hour := time.Hour * time.Duration(rand.Intn(24))
 	minute := time.Minute * time.Duration(rand.Intn(60))
 	second := time.Second * time.Duration(rand.Intn(60))
-	startTime.AddDate(0, month, day).Add(hour).Add(minute).Add(second)
+	startTime = startTime.AddDate(0, month, day).Add(hour).Add(minute).Add(second)
 
 	// generate a UUID
 	UUID, err := uuid.NewV4()
@@ -283,7 +283,7 @@ func (cas *CheckingAccountService) GenerateFakeCustomerEvents(closeAccount bool)
 		hour := time.Hour * time.Duration(rand.Intn(24))
 		minute := time.Minute * time.Duration(rand.Intn(60))
 		second := time.Second * time.Duration(rand.Intn(60))
-		startTime.AddDate(0, month, day).Add(hour).Add(minute).Add(second)
+		startTime = startTime.AddDate(0, month, day).Add(hour).Add(minute).Add(second)
 
 		if depositMax == 0 {
 			if closeAccount {
