@@ -75,7 +75,6 @@ func RunProjections() {
 	diff = time.Now().Sub(timer)
 	fmt.Printf("[OpenClosedAccounts done] (%s)\n\n", diff.String())
 
-
 	timer = time.Now()
 	err = Projections.HighestBalanceOwners(eventStore)
 	if err != nil {
@@ -84,6 +83,13 @@ func RunProjections() {
 	diff = time.Now().Sub(timer)
 	fmt.Printf("[HighestBalanceOwners done] (%s)\n\n", diff.String())
 
+	timer = time.Now()
+	err = Projections.TotalBalancePerMonth(eventStore)
+	if err != nil {
+		handleErrorAndExit(err)
+	}
+	diff = time.Now().Sub(timer)
+	fmt.Printf("[TotalBalancePerMonth done] (%s)\n\n", diff.String())
 }
 
 func handleErrorAndExit(err error) {

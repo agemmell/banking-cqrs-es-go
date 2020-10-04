@@ -8,6 +8,7 @@ import (
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 	"sort"
+	"time"
 )
 
 // Total bank funds (sum of all account balances)
@@ -156,3 +157,58 @@ func sortTopTen(topTen []AccountBalance, accountBalance AccountBalance) []Accoun
 	return topTen[0:l]
 }
 
+// Bank total balance per month
+func TotalBalancePerMonth(eventStore *Seacrest.EventStore) error {
+
+	var totalBankFundsPerMonth = map[string]int{}
+	var yearMonths []string
+	var yearMonth string
+
+	for _, envelope := range eventStore.GetAllEvents() {
+		switch envelope.EventType {
+		case "MoneyWasDeposited":
+			moneyWasDeposited := CheckingAccountService.MoneyWasDeposited{}
+			err := json.Unmarshal(envelope.Payload, &moneyWasDeposited)
+			if err != nil {
+				return err
+			}
+
+			yearMonth = time.Unix(0, moneyWasDeposited.Timestamp).Format("2006-01")
+
+			if _, ok := totalBankFundsPerMonth[yearMonth]; ok {
+				totalBankFundsPerMonth[yearMonth] += moneyWasDeposited.Amount
+			} else {
+				totalBankFundsPerMonth[yearMonth] = moneyWasDeposited.Amount
+				yearMonths = append(yearMonths, yearMonth)
+			}
+
+		case "MoneyWasWithdrawn":
+			moneyWasWithdrawn := CheckingAccountService.MoneyWasWithdrawn{}
+			err := json.Unmarshal(envelope.Payload, &moneyWasWithdrawn)
+			if err != nil {
+				return err
+			}
+
+			yearMonth = time.Unix(0, moneyWasWithdrawn.Timestamp).Format("2006-01")
+
+			if _, ok := totalBankFundsPerMonth[yearMonth]; ok {
+				totalBankFundsPerMonth[yearMonth] -= moneyWasWithdrawn.Amount
+			} else {
+				totalBankFundsPerMonth[yearMonth] = -moneyWasWithdrawn.Amount
+				yearMonths = append(yearMonths, yearMonth)
+			}
+		}
+	}
+
+	// TODO totalBankFundsPerMonth map needs to be sorted by date key and missing year-month keys need filling in because
+	//  they will be missing if no events happened during that month.
+	//  Also, more importantly, the events are not in actual event timestamp order so this algorithm isn't going to wo
+
+	p := message.NewPrinter(language.English)
+	fmt.Println("Total Banks Funds Per Month:")
+	for date, balance := range totalBankFundsPerMonth {
+		fmt.Printf("%s: %s\n", date, p.Sprintf("%d", balance))
+	}
+
+	return nil
+}
