@@ -8,8 +8,6 @@ Accepted
 
 ## Context
 
-I strongly believe Short / abbreviated variable names
-
 Idiomatic Go calls for "short, descriptive" variable names, which is fine, but I abhor needlessly short variable names.  
 Code is for humans to read and understand. Having single character variable names is rarely helpful. Reducing the cognitive load on software engineers trying to understand what code is doing should be one of the top priorities of any shared codebase.
 
